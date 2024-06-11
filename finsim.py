@@ -21,7 +21,7 @@ df["deposit"] = 1
 
 df["rate"] = 0.05/365.0
 # df["interest"] = df["deposit"] * df["rate"]
-df['total'] = (df['deposit'] * df['rate'].shift().add(1).cumprod().fillna(1)).cumsum()
+df['total'] = (df['deposit'] * df['rate'].shift().add(1).cumprod().fillna(1)).cumsum() # From https://stackoverflow.com/questions/57620050/calculate-compound-interest-in-pandas
 st.dataframe(df)
 st.area_chart(df, y="total")
 df1 = df.resample("M").last()
