@@ -35,13 +35,6 @@ def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, fre
     df_daily = pd.DataFrame(index=dates)
     df_daily['deposit'] = 0
 
-    # Merge the two dataframes with default value of zero, summing the total field from each into a new total field
-    # df = pd.merge(df_daily, df_recurring, how='outer', left_index=True, right_index=True)
-    # #df['total_y'].fillna(value=0, inplace=True)
-    # df['total_y'] = df['total_y'].fillna(0)
-    # df['deposit'] = df['total_x'] + df['total_y']
-    # df = df.drop(['total_x', 'total_y'], axis=1)
-
     # Update the daily dataframe from the recurring dataframe
     df_daily.update(df_recurring)
     df = df_daily
