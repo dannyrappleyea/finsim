@@ -28,19 +28,23 @@ def calculate_recurring_balance(start_date, end_date, recurring_amount, rate):
 def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, frequency, rate):
     dates = pd.date_range(start=start_date, end=end_date, freq=frequency, name='date')
     df_recurring = pd.DataFrame(index=dates)
-    df_recurring['total'] = recurring_amount
+    df_recurring['deposit'] = recurring_amount
 
     # Create a daily series to merge
     dates = pd.date_range(start=start_date, end=end_date, name='date')
     df_daily = pd.DataFrame(index=dates)
-    df_daily['total'] = 0
+    df_daily['deposit'] = 0
 
     # Merge the two dataframes with default value of zero, summing the total field from each into a new total field
-    df = pd.merge(df_daily, df_recurring, how='outer', left_index=True, right_index=True)
-    #df['total_y'].fillna(value=0, inplace=True)
-    df['total_y'] = df['total_y'].fillna(0)
-    df['deposit'] = df['total_x'] + df['total_y']
-    df = df.drop(['total_x', 'total_y'], axis=1)
+    # df = pd.merge(df_daily, df_recurring, how='outer', left_index=True, right_index=True)
+    # #df['total_y'].fillna(value=0, inplace=True)
+    # df['total_y'] = df['total_y'].fillna(0)
+    # df['deposit'] = df['total_x'] + df['total_y']
+    # df = df.drop(['total_x', 'total_y'], axis=1)
+
+    # Update the daily dataframe from the recurring dataframe
+    df_daily.update(df_recurring)
+    df = df_daily
 
     # Add interest and total column of zero
     df['interest'] = 0
@@ -99,10 +103,11 @@ def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, fre
 # st.area_chart(df_one_year, y="total")
 
 ### Example showing recurring deposit loop. Get time before and after function, then show elapsed time
-# Elapsed time: 0.054891109466552734 seconds
+# Elapsed time: 0.054891109466552734 seconds (1 year)
+# Elapsed time: 0.5093100070953369 seconds (10 years)
 # - improved time through iat
 t1 = time.time()
-df_one_year = calculate_recurring_balance_loop('2024-01-01', '2024-12-31', 100, "MS", 0.05)
+df_one_year = calculate_recurring_balance_loop('2024-01-01', '2034-12-31', 100, "MS", 0.05)
 t2 = time.time()
 st.write('Elapsed time: {} seconds'.format((t2 - t1)))
 
