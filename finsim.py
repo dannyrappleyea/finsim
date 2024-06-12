@@ -37,17 +37,31 @@ def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, fre
 
     # Merge the two dataframes with default value of zero, summing the total field from each into a new total field
     df = pd.merge(df_daily, df_recurring, how='outer', left_index=True, right_index=True)
-    df['total_y'].fillna(value=0, inplace=True)
+    #df['total_y'].fillna(value=0, inplace=True)
+    df['total_y'] = df['total_y'].fillna(0)
     df['deposit'] = df['total_x'] + df['total_y']
     df = df.drop(['total_x', 'total_y'], axis=1)
 
-    # Add interest column of zero, then calculate interest and total
+    # Add interest and total column of zero
     df['interest'] = 0
     df['total'] = 0
-    df['total'].iloc[0] = df['deposit'].iloc[0]
+
+    # Get indexes for columns
+    deposit_index = df.columns.get_loc('deposit')
+    interest_index = df.columns.get_loc('interest')
+    total_index = df.columns.get_loc('total')
+
+    # Calculate interest and total
+    # df['total'].iloc[0] = df['deposit'].iloc[0]
+    df.iat[0, total_index] = df.iat[0, deposit_index]
     for i in range(1, len(df)):
-        df['interest'].iloc[i] = df['total'].iloc[i-1] * rate / 365
-        df['total'].iloc[i] = df['deposit'].iloc[i] + df['total'].iloc[i-1] + df['interest'].iloc[i]
+        # df['interest'].iloc[i] = df['total'].iloc[i-1] * rate / 365
+        # df.loc[i, 'interest'] = df.loc[i-1, 'total'] * rate / 365
+        df.iat[i, interest_index] = df.iat[i-1, total_index] * rate / 365
+
+        #df['total'].iloc[i] = df['deposit'].iloc[i] + df['total'].iloc[i-1] + df['interest'].iloc[i]
+        #df.loc[i, 'total'] = df.loc[i, 'deposit'] + df.loc[i-1, 'total'] + df.loc[i, 'interest']
+        df.iat[i, total_index] = df.iat[i, deposit_index] + df.iat[i-1, total_index] + df.iat[i, interest_index]
 
     return df
 
@@ -85,7 +99,8 @@ def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, fre
 # st.area_chart(df_one_year, y="total")
 
 ### Example showing recurring deposit loop. Get time before and after function, then show elapsed time
-# Elapsed time: 0.0020020008087158203 seconds
+# Elapsed time: 0.054891109466552734 seconds
+# - improved time through iat
 t1 = time.time()
 df_one_year = calculate_recurring_balance_loop('2024-01-01', '2024-12-31', 100, "MS", 0.05)
 t2 = time.time()
