@@ -30,10 +30,11 @@ df_one_year = calculate_balance('2024-01-01', '2024-12-31', 100, 0.05)
 df_six_month = calculate_balance('2024-05-01', '2024-12-31', 50, 0.05)
 
 # Merge df_one_year and df_six_month dataframes
-# df_merged = pd.merge(df_one_year, df_six_month, how='outer', left_index=True, right_index=True)
-df_merged = pd.concat([df_one_year, df_six_month])\
-       .groupby('date')['total']\
-       .sum()
+df_merged = pd.merge(df_one_year, df_six_month, how='outer', left_index=True, right_index=True)
+total = df_merged.sum(axis=1)
+# df_merged = pd.concat([df_one_year, df_six_month])\
+#        .groupby('date')['total']\
+#        .sum()
 
-st.dataframe(df_merged)
-st.area_chart(df_merged, y="total")
+st.dataframe(df_merged, use_container_width=True)
+st.area_chart(total)
