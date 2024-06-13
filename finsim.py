@@ -62,6 +62,37 @@ def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, fre
 
     return df
 
+# Calculate recurring interest as individual series
+def calculate_recurring_balance_series(start_date, end_date, recurring_amount, frequency, rate):
+    # Create a date range for the recurring amount
+    dates_recurring = pd.date_range(start=start_date, end=end_date, freq=frequency, name='date')
+    # df_recurring = pd.DataFrame(index=dates)
+    # df_recurring['deposit'] = recurring_amount
+
+    # Create a daily series to merge
+    dates_daily = pd.date_range(start=start_date, end=end_date, name='date')
+    df_daily = pd.DataFrame(index=dates_daily)
+    df_daily['total'] = 0
+    # df_daily['deposit'] = 0
+
+    # Loop over dates_recurring
+    for i in range(len(dates_recurring)):
+        date = dates_recurring[i]
+        #st.write(dates_recurring[i])
+        
+        # Get a dataframe from calculate_balance for this date
+        df = calculate_balance(date, end_date, recurring_amount, rate)
+        # df = df.rename(columns={"total": date})
+        #st.dataframe(df, use_container_width=True)
+
+        # Add with df_daily
+        df_daily = df_daily.add(df, fill_value=0)
+    
+    # Calculate total
+    # df_total = df_daily.sum(axis=1)
+    # df_total.name = 'total'
+    # return df_total
+    return df_daily
 
 # # Resample to 1 month intervals and redisplay
 # df1 = df.resample("ME").last()
@@ -98,9 +129,23 @@ def calculate_recurring_balance_loop(start_date, end_date, recurring_amount, fre
 ### Example showing recurring deposit loop. Get time before and after function, then show elapsed time
 # Elapsed time: 0.054891109466552734 seconds (1 year)
 # Elapsed time: 0.5093100070953369 seconds (10 years)
+# Elapsed time: 2.3993027210235596 seconds (50 years)
+# Elapsed time: 4.634013891220093 seconds (100 years)
 # - improved time through iat
+# t1 = time.time()
+# df_one_year = calculate_recurring_balance_loop('2024-01-01', '2074-12-31', 100, "MS", 0.05)
+# t2 = time.time()
+# st.write('Elapsed time: {} seconds'.format((t2 - t1)))
+
+# st.dataframe(df_one_year, use_container_width=True)
+# st.area_chart(df_one_year, y="total")
+
+### Example showing recurring deposit series. Get time before and after function, then show elapsed time
+# Elapsed time: 0.022956132888793945 seconds (1 year)
+# Elapsed time: 0.2656688690185547 seconds (10 years)
+# Elapsed time: 5.548826694488525 seconds (100 years)
 t1 = time.time()
-df_one_year = calculate_recurring_balance_loop('2024-01-01', '2034-12-31', 100, "MS", 0.05)
+df_one_year = calculate_recurring_balance_series('2024-01-01', '2074-12-31', 100, "MS", 0.05)
 t2 = time.time()
 st.write('Elapsed time: {} seconds'.format((t2 - t1)))
 
