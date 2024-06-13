@@ -143,9 +143,10 @@ def calculate_recurring_balance_series(start_date, end_date, recurring_amount, f
 ### Example showing recurring deposit series. Get time before and after function, then show elapsed time
 # Elapsed time: 0.022956132888793945 seconds (1 year)
 # Elapsed time: 0.2656688690185547 seconds (10 years)
+# Elapsed time: 1.994513988494873 seconds (50 years)
 # Elapsed time: 5.548826694488525 seconds (100 years)
 t1 = time.time()
-df_one_year = calculate_recurring_balance_series('2024-01-01', '2074-12-31', 100, "MS", 0.05)
+df_one_year = calculate_recurring_balance_series('2024-01-01', '2024-12-31', 100, "MS", 0.05)
 t2 = time.time()
 st.write('Elapsed time: {} seconds'.format((t2 - t1)))
 
