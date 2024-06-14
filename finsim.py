@@ -94,6 +94,66 @@ def calculate_recurring_balance_series(start_date, end_date, recurring_amount, f
     # return df_total
     return df_daily
 
+# Calculate compound interest with recurring amounts using offsets
+def calculate_recurring_balance_offset(start_date, end_date, recurring_amount, frequency, rate):
+    dates = pd.date_range(start=start_date, end=end_date, freq=frequency, name='date')
+    df_recurring = pd.DataFrame(index=dates)
+    df_recurring['deposit'] = recurring_amount
+
+    # Create a daily series to merge
+    dates = pd.date_range(start=start_date, end=end_date, name='date')
+    df_daily = pd.DataFrame(index=dates)
+    df_daily['deposit'] = 0
+    df_daily['total'] = 0
+
+    # Update the daily dataframe from the recurring dataframe
+    df_daily.update(df_recurring)
+
+    # Get all rows with a deposit
+    df_deposits = df_daily[df_daily['deposit'] > 0]
+
+    # Look over deposits
+    is_first_deposit = True
+    last_row = None
+    last_total = 0
+    for row in df_deposits.index.to_list():
+        # st.write(row)
+        if is_first_deposit:
+            # First deposit
+            df_daily.loc[row, 'total'] = df_daily.loc[row, 'deposit']
+            # st.dataframe(df_daily.loc[row:row], use_container_width=True)
+            is_first_deposit = False
+            last_row = row
+            last_total = df_daily.loc[row, 'total']
+        else:   # Calculate total between current row and last row
+            # st.dataframe(df_daily.loc[last_row:row], use_container_width=True)
+
+            # Calculate the balance between the two dates
+            df_slice = calculate_balance(last_row, row, last_total, rate)
+
+            # Update df_daily with new total
+            df_daily.update(df_slice)
+
+            # Update last total with the deposit
+            last_total = df_daily.loc[row, 'total'] + df_daily.loc[row, 'deposit']
+            df_daily.loc[row, 'total'] = last_total
+
+            #st.dataframe(df_slice, use_container_width=True)
+            # st.dataframe(df_daily.loc[last_row:row], use_container_width=True)
+            last_row = row
+
+    # Calculate total between last row and end date    
+    # st.write(end_date)
+    # st.dataframe(df_daily.loc[last_row:end_date], use_container_width=True)
+    df_slice = calculate_balance(last_row, end_date, last_total, rate)
+    df_daily.update(df_slice)
+    # st.dataframe(df_daily.loc[last_row:end_date], use_container_width=True)
+
+    # Return df_daily
+    return df_daily
+
+
+
 # # Resample to 1 month intervals and redisplay
 # df1 = df.resample("ME").last()
 # st.dataframe(df1)
@@ -145,8 +205,21 @@ def calculate_recurring_balance_series(start_date, end_date, recurring_amount, f
 # Elapsed time: 0.2656688690185547 seconds (10 years)
 # Elapsed time: 1.994513988494873 seconds (50 years)
 # Elapsed time: 5.548826694488525 seconds (100 years)
+# t1 = time.time()
+# df_one_year = calculate_recurring_balance_series('2024-01-01', '2024-12-31', 100, "MS", 0.05)
+# t2 = time.time()
+# st.write('Elapsed time: {} seconds'.format((t2 - t1)))
+
+# st.dataframe(df_one_year, use_container_width=True)
+# st.area_chart(df_one_year, y="total")
+
+### Example showing recurring deposit series. Get time before and after function, then show elapsed time
+# Elapsed time: 0.04046988487243652 seconds (1 year)
+# Elapsed time: 0.3547549247741699 seconds (10 years)
+# Elapsed time: 1.913755178451538 seconds (50 years)
+# Elapsed time: 4.166244268417358 seconds (100 years)
 t1 = time.time()
-df_one_year = calculate_recurring_balance_series('2024-01-01', '2024-12-31', 100, "MS", 0.05)
+df_one_year = calculate_recurring_balance_offset('2024-01-01', '2024-12-31', 100, "MS", 0.05)
 t2 = time.time()
 st.write('Elapsed time: {} seconds'.format((t2 - t1)))
 
