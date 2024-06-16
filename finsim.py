@@ -3,6 +3,34 @@ import pandas as pd
 import numpy as np
 import time
 
+
+# Create an cash class that can accept deposits and withdrawals, and earn interest
+class Cash:
+    def __init__(self, date, amount=0.0, rate=0.0):
+        self.rate = rate
+
+        # Create a datetimeindex with the date, then use that to create a pandas dataframe with the initial amount
+        # Directly instantiating a DatetimeIndex
+        self.balances = pd.DataFrame({'deposits': amount}, index=pd.DatetimeIndex([date], name='date', freq='D'))
+        # self.balances = pd.DataFrame({'date': datetime_index, 'amount': [amount]}, index=[0])
+        # self.balances['deposits'] = amount
+
+    # Deposit an amount on a given date
+    def deposit(self, date, amount):
+        if date in self.balances.index:
+            self.balances.at[date, 'deposits'] += amount
+        else:
+            df = pd.DataFrame({'deposits': amount}, index=pd.DatetimeIndex([date], name='date', freq='D'))
+            self.balances = pd.concat([self.balances, df])
+            self.balances.sort_index(inplace=True)
+
+    # Withdraw an amount on a given date
+    def withdraw(self, date, amount):
+        self.deposit(date, -amount)
+
+    def calculate_interest(self):
+        self.interest = self.balance * self.rate/365
+
 # Function that takes a start and end date, calculates compound interest and returns a dataframe of dates and balances
 def calculate_balance(start_date, end_date, initial_balance, rate):
     dates = pd.date_range(start=start_date, end=end_date, name='date')
@@ -152,7 +180,17 @@ def calculate_recurring_balance_offset(start_date, end_date, recurring_amount, f
     # Return df_daily
     return df_daily
 
-
+# Create sidebar for variables
+with st.sidebar:
+    st.subheader("Variables")
+    st.date_input("Simulation Start Date", value=pd.Timestamp("2024-01-01"), key='sim_start_date')
+    st.date_input("Simulation End Date", value=pd.Timestamp("2029-12-31"), key='sim_end_date')
+    st.number_input("Initial Balance", value=1000, key='initial_balance')
+    st.number_input("Interest Rate", value=0.05, key='interest_rate')
+    st.selectbox("Frequency", ["D", "M", "Q", "Y"], key='interest_frequency')
+    st.divider()
+    st.number_input("Recurring Amount", value=100, key='recurring_amount')
+    st.selectbox("Recurring Frequency", ["D", "M", "Q", "Y"], key='recurring_frequency', index=1)
 
 # # Resample to 1 month intervals and redisplay
 # df1 = df.resample("ME").last()
@@ -218,10 +256,26 @@ def calculate_recurring_balance_offset(start_date, end_date, recurring_amount, f
 # Elapsed time: 0.3547549247741699 seconds (10 years)
 # Elapsed time: 1.913755178451538 seconds (50 years)
 # Elapsed time: 4.166244268417358 seconds (100 years)
-t1 = time.time()
-df_one_year = calculate_recurring_balance_offset('2024-01-01', '2024-12-31', 100, "MS", 0.05)
-t2 = time.time()
-st.write('Elapsed time: {} seconds'.format((t2 - t1)))
+# t1 = time.time()
+# df_one_year = calculate_recurring_balance_offset('2024-01-01', '2024-12-31', 100, "MS", 0.05)
+# t2 = time.time()
+# st.write('Elapsed time: {} seconds'.format((t2 - t1)))
 
-st.dataframe(df_one_year, use_container_width=True)
-st.area_chart(df_one_year, y="total")
+# st.dataframe(df_one_year, use_container_width=True)
+# st.area_chart(df_one_year, y="total")
+
+# Create a cash instance with a $100 deposit and 5% interest on 1/1/2024
+my_cash = Cash(
+    date=st.session_state.sim_start_date,
+    amount=st.session_state.initial_balance,
+    rate=st.session_state.interest_rate
+)
+
+# Make a deposit on 2/1/2024 for $200
+my_cash.deposit(date='2024-01-01', amount=50)
+my_cash.deposit(date='2024-03-01', amount=200)
+my_cash.deposit(date='2024-02-01', amount=75)
+my_cash.withdraw(date='2024-02-01', amount=25)
+my_cash.withdraw(date='2024-04-01', amount=100)
+
+st.dataframe(my_cash.balances, use_container_width=True)
