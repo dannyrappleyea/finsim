@@ -13,6 +13,7 @@ def calculate_balance(start_date, end_date, initial_balance, rate):
 # Function that calculates compound interest for a recurring monthly deposit
 # - takes a start and end date, recurring amount, and interest rate
 # - returns a dataframe of dates and balances
+# - NOTE: can only handle same frequency for compounding rate and recurring rate
 def calculate_recurring_balance(start_date, end_date, recurring_amount, rate):
     dates = pd.date_range(start=start_date, end=end_date, name='date')
     df = pd.DataFrame(index=dates)
